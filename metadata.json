@@ -1,0 +1,5 @@
+{
+  "name": "Longier-Planer",
+  "description": "Ein Terminplaner für Pferdestallbesitzer zur Koordinierung von Longier-Zeiten in verschiedenen Hallen mit spezifischen Kapazitäten und Zeitfenstern.",
+  "requestFramePermissions": []
+}
