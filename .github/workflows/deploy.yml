@@ -20,11 +20,7 @@ jobs:
           node-version: '20'
       
       - run: npm ci
-      
-      - name: Build with base path
-        run: npm run build
-        env:
-          VITE_BASE: /Longier-Planer/
+      - run: npm run build
       
       - uses: actions/configure-pages@v4
       
