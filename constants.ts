@@ -7,7 +7,7 @@ export const ARENA_CONFIGS: ArenaConfig[] = [
   {
     id: 'halle-1',
     name: 'Neue Halle (25x40m)',
-    capacity: 2,
+    capacity: 1,
     schedule: {
       1: { // Montag
         windows: [
@@ -26,7 +26,7 @@ export const ARENA_CONFIGS: ArenaConfig[] = [
   {
     id: 'halle-2',
     name: 'Alte Halle (20x70m)',
-    capacity: 1,
+    capacity: 2,
     schedule: {
       1: { // Montag
         windows: [

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { ArenaId, Booking, ArenaConfig, TimeSlot } from './types';
@@ -8,8 +7,7 @@ import { getAvailableSlotsForDate } from './utils/dateUtils';
 import { ArenaSelector } from './components/ArenaSelector';
 import { DateSelector } from './components/DateSelector';
 import { BookingForm } from './components/BookingForm';
-
-const STORAGE_KEY = 'stable_lunging_bookings_v1';
+import { supabase } from './lib/supabase';
 
 export default function App() {
   const [selectedArenaId, setSelectedArenaId] = useState<ArenaId | null>(null);
@@ -17,47 +15,119 @@ export default function App() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeBookingSlot, setActiveBookingSlot] = useState<TimeSlot | null>(null);
   const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Initiales Laden aus LocalStorage
+  // Buchungen aus Supabase laden
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setBookings(JSON.parse(saved));
-      } catch (e) {
-        console.error("Fehler beim Laden der Buchungen", e);
-      }
-    }
+    loadBookings();
+    
+    // Real-time Updates abonnieren
+    const channel = supabase
+      .channel('bookings-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'bookings' },
+        () => {
+          loadBookings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  // Speichern bei Änderungen
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
-  }, [bookings]);
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('date', { ascending: true })
+        .order('slot_start', { ascending: true });
+
+      if (error) {
+        console.error('Fehler beim Laden der Buchungen:', error);
+        return;
+      }
+
+      // Konvertiere Supabase-Daten zu Booking-Format
+      const convertedBookings: Booking[] = (data || []).map((row: any) => ({
+        id: row.id,
+        arenaId: row.arena_id as ArenaId,
+        date: row.date,
+        slotStart: row.slot_start,
+        slotEnd: row.slot_end,
+        userName: row.user_name,
+        horseName: row.horse_name
+      }));
+
+      setBookings(convertedBookings);
+    } catch (error) {
+      console.error('Fehler beim Laden der Buchungen:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const selectedArena = ARENA_CONFIGS.find(a => a.id === selectedArenaId) || null;
 
-  const handleBooking = (userName: string, horseName: string) => {
+  const handleBooking = async (userName: string, horseName: string) => {
     if (!selectedArenaId || !selectedDate || !activeBookingSlot) return;
-
-    const newBooking: Booking = {
-      id: Math.random().toString(36).substr(2, 9),
-      arenaId: selectedArenaId,
+  
+    const newBooking = {
+      arena_id: selectedArenaId,
       date: format(selectedDate, 'yyyy-MM-dd'),
-      slotStart: activeBookingSlot.start,
-      slotEnd: activeBookingSlot.end,
-      userName,
-      horseName
+      slot_start: activeBookingSlot.start,
+      slot_end: activeBookingSlot.end,
+      user_name: userName,
+      horse_name: horseName
     };
-
-    setBookings(prev => [...prev, newBooking]);
-    setActiveBookingSlot(null);
+  
+    console.log('🚀 Versuche Buchung zu erstellen:', newBooking);
+  
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([newBooking])
+        .select()
+        .single();
+  
+      console.log('📡 Supabase Response:', { data, error });
+  
+      if (error) {
+        console.error('❌ Fehler beim Erstellen der Buchung:', error);
+        alert(`Fehler: ${error.message}`);
+        return;
+      }
+  
+      console.log('✅ Buchung erfolgreich erstellt:', data);
+      setActiveBookingSlot(null);
+    } catch (error) {
+      console.error('❌ Fehler beim Erstellen der Buchung:', error);
+      alert('Fehler beim Erstellen der Buchung. Bitte versuchen Sie es erneut.');
+    }
   };
 
-  const confirmDelete = () => {
-    if (deletingBookingId) {
-      setBookings(prev => prev.filter(b => b.id !== deletingBookingId));
+  const confirmDelete = async () => {
+    if (!deletingBookingId) return;
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', deletingBookingId);
+
+      if (error) {
+        console.error('Fehler beim Löschen der Buchung:', error);
+        alert('Fehler beim Löschen der Buchung. Bitte versuchen Sie es erneut.');
+        return;
+      }
+
       setDeletingBookingId(null);
+    } catch (error) {
+      console.error('Fehler beim Löschen der Buchung:', error);
+      alert('Fehler beim Löschen der Buchung. Bitte versuchen Sie es erneut.');
     }
   };
 
@@ -78,6 +148,12 @@ export default function App() {
             Maximale Dauer: 25 Minuten pro Einheit.
           </p>
         </header>
+
+        {loading && (
+          <div className="text-center py-8">
+            <p className="text-slate-500">Buchungen werden geladen...</p>
+          </div>
+        )}
 
         <section className="mb-12">
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -140,7 +216,7 @@ export default function App() {
                             isFullyBooked ? 'bg-red-500' : isPartiallyBooked ? 'bg-amber-500' : 'bg-emerald-500'
                           }`}></span>
                           <span className="text-xs font-medium text-slate-500">
-                            {isFullyBooked ? 'Ausgebucht' : isPartiallyBooked ? 'Noch 1 Platz frei' : 'Verfügbar'}
+                            {isFullyBooked ? 'Ausgebucht' : isPartiallyBooked ? `Noch ${selectedArena.capacity - slotBookings.length} Platz${selectedArena.capacity - slotBookings.length > 1 ? 'e' : ''} frei` : 'Verfügbar'}
                           </span>
                         </div>
                       </div>
