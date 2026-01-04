@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/Longier-Planer/', // Wichtig: Ersetze mit deinem Repository-Namen
+      base: '/', // Für Custom Domain (www.longier-planer.de)
       server: {
         port: 3000,
         host: '0.0.0.0',
