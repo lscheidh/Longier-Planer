@@ -13,7 +13,7 @@ export const getVisibleDates = () => {
   return dates;
 };
 
-export const generateSlotsForWindow = (startStr: string, endStr: string): TimeSlot[] => {
+export const generateSlotsForWindow = (startStr: string, endStr: string, slotDuration: number = SLOT_DURATION_MINS): TimeSlot[] => {
   const slots: TimeSlot[] = [];
   const referenceDate = new Date();
   
@@ -23,7 +23,7 @@ export const generateSlotsForWindow = (startStr: string, endStr: string): TimeSl
   const allowedLimit = addMinutes(end, 5);
 
   while (true) {
-    const next = addMinutes(current, SLOT_DURATION_MINS);
+    const next = addMinutes(current, slotDuration);
     
     // Wenn das Ende des nächsten Slots mehr als 5 Minuten nach der Endzeit liegt, abbrechen
     if (isAfter(next, allowedLimit)) break;
@@ -44,8 +44,10 @@ export const getAvailableSlotsForDate = (config: ArenaConfig, date: Date): TimeS
   
   if (!dayConfig) return [];
   
+  const slotDuration = config.slotDuration || SLOT_DURATION_MINS;
+  
   return dayConfig.windows.flatMap(window => 
-    generateSlotsForWindow(window.start, window.end)
+    generateSlotsForWindow(window.start, window.end, slotDuration)
   );
 };
 

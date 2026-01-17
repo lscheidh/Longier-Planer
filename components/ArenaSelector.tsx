@@ -10,7 +10,7 @@ interface Props {
 
 export const ArenaSelector: React.FC<Props> = ({ selectedId, onSelect }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
       {ARENA_CONFIGS.map((config) => (
         <button
           key={config.id}

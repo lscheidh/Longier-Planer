@@ -144,8 +144,8 @@ export default function App() {
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">Longier-Planer</h1>
           <p className="text-slate-500 max-w-lg mx-auto">
-            Reservieren Sie Ihre Zeiten in der Neuen oder Alten Halle bequem online. 
-            Maximale Dauer: 25 Minuten pro Einheit.
+            Reservieren Sie Ihre Zeiten in den verfügbaren Arenen bequem online. 
+            Die Slot-Dauer variiert je nach Arena.
           </p>
         </header>
 
@@ -267,7 +267,7 @@ export default function App() {
 
         <footer className="mt-16 pt-8 border-t border-slate-200 text-center text-slate-400 text-sm">
           <p>© {new Date().getFullYear()} Pferdestall Longier-Management System</p>
-          <p className="mt-1 italic">Slots sind auf 25 Minuten begrenzt, um jedem die Nutzung zu ermöglichen.</p>
+          <p className="mt-1 italic">Slots sind zeitlich begrenzt, um jedem die Nutzung zu ermöglichen.</p>
         </footer>
       </div>
 

@@ -45,5 +45,48 @@ export const ARENA_CONFIGS: ArenaConfig[] = [
         ]
       }
     }
+  },
+  {
+    id: 'longierzirkel',
+    name: 'Longierzirkel',
+    capacity: 1,
+    slotDuration: 30,
+    schedule: {
+      0: { // Sonntag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      1: { // Montag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      2: { // Dienstag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      3: { // Mittwoch
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      4: { // Donnerstag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      5: { // Freitag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      },
+      6: { // Samstag
+        windows: [
+          { start: '08:00', end: '21:00' }
+        ]
+      }
+    }
   }
 ];
