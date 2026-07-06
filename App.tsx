@@ -40,9 +40,11 @@ export default function App() {
   const loadBookings = async () => {
     try {
       setLoading(true);
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
+        .gte('date', todayStr)
         .order('date', { ascending: true })
         .order('slot_start', { ascending: true });
 
